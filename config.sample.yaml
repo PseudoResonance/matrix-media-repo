@@ -40,10 +40,10 @@ repo:
   # only be accessible over authenticated endpoints, though future media will be accessible on both
   # authenticated and unauthenticated media.
   #
-  # This flag currently defaults to false. A future release, likely in August 2024, will remove this flag
-  # and have the same effect as it being true (always on). This flag is primarily intended for servers to
-  # opt-in to the behaviour early.
-  freezeUnauthenticatedMedia: false
+  # This flag defaults to true. Previously it defauled to false. A future release, likely in 2025, will
+  # remove this flag and have the same effect as it being true (always on). This flag is primarily
+  # intended for servers to opt-out of the behaviour while they are still testing compatibility.
+  freezeUnauthenticatedMedia: true
 
 # Options for dealing with federation
 federation:
@@ -63,6 +63,24 @@ federation:
   # Note: Adding domains controlled by the media repo itself to this list is not advisable.
   ignoredHosts:
     - example.org
+
+  # allowedNetworks and disallowedNetworks are the CIDR ranges used to prevent federation requests
+  # from accessing private IPs. By default, the ranges are the same as the default URL Preview
+  # ranges, illustrated below.
+  #
+  # Disallowed networks are checked before allowed networks.
+  disallowedNetworks:
+    - "127.0.0.1/8"
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+    - "100.64.0.0/10"
+    - "169.254.0.0/16"
+    - '::1/128'
+    - 'fe80::/64'
+    - 'fc00::/7'
+  allowedNetworks:
+    - "0.0.0.0/0" # "Everything". The deny list will help limit this.
 
 # The database configuration for the media repository
 # Do NOT put your homeserver's existing database credentials here. Create a new database and
@@ -91,6 +109,8 @@ homeservers:
     name: example.org
 
     # The base URL to where the homeserver can actually be reached by MMR.
+    # Caution: this URL is not validated for SSRF or private IPs. Ensure this variable is
+    # populated from a trusted source.
     csApi: "https://example.org/"
 
     # The number of consecutive failures in calling this homeserver before the
@@ -469,6 +489,7 @@ thumbnails:
     - "image/bmp"
     - "image/tiff"
     #- "image/svg+xml" # Be sure to have ImageMagick installed to thumbnail SVG files
+    #- "image/jxl" # Be sure to have ImageMagick installed to thumbnail JPEGXL files
     - "audio/mpeg"
     - "audio/ogg"
     - "audio/wav"
